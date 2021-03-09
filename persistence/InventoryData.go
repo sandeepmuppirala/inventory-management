@@ -2,12 +2,11 @@ package persistence
 
 import (
 	"fmt"
-	"inventory-management/models"
 	"github.com/jinzhu/gorm"
-	log "github.com/sirupsen/logrus"
 	_ "github.com/lib/pq"
+	log "github.com/sirupsen/logrus"
+	"inventory-management/models"
 )
-
 
 func ViewItemsInInventory() []models.Inventory {
 	db := getDatabaseConnection()
@@ -27,18 +26,24 @@ func ViewAnItemInInventory(id int) models.Inventory {
 	return item
 }
 
-func AddItemToInventory(inputItem models.InventoryItem)  *gorm.DB {
+func AddItemToInventory(inputItem models.InventoryItem) interface{} {
 	db := getDatabaseConnection()
 	item := models.Inventory{Category: inputItem.Category, Product: inputItem.Product, Quantity: inputItem.Quantity}
 	defer db.Close()
 	result := db.Create(&item)
-	if(result.RowsAffected == 1) {
-		log.Debug("Item added to the inventory") 
+	if result.RowsAffected == 1 {
+		log.Debug("Item added to the inventory")
+		return item
+	} else {
+		log.Debug("Constraint violated")
+		err := models.Error{}
+		err.ErrorCode = "IM-105"
+		err.ErrorMessage = "Duplicate product!"
+		return err
 	}
-	return result
 }
 
-func GetItemQuantityForOrder(id int, quantity int) interface {} {
+func GetItemQuantityForOrder(id int, quantity int) interface{} {
 	db := getDatabaseConnection()
 	item := models.Inventory{}
 	defer db.Close()
@@ -49,7 +54,7 @@ func GetItemQuantityForOrder(id int, quantity int) interface {} {
 			// result := db.First(&item, id)	// this should be an update call
 			item.Quantity = item.Quantity - quantity
 			result := db.Save(&item)
-			if(result.RowsAffected == 1) {
+			if result.RowsAffected == 1 {
 				log.Debug("Quantity updated in the inventory")
 				item.Quantity = quantity
 			}
@@ -57,16 +62,16 @@ func GetItemQuantityForOrder(id int, quantity int) interface {} {
 		} else {
 			// log insufficient quantity in database, check view items and make this call again
 			log.Debug("Insufficient quantity in the inventory")
-			err := models.Error {}
+			err := models.Error{}
 			err.ErrorCode = "IM-101"
 			err.ErrorMessage = "Insufficient quantity in the inventory"
 			return err
 		}
 	}
-	return item 
+	return item
 }
 
-func UpdateQuantityInInventory(id int, quantity int)  *gorm.DB {
+func UpdateQuantityInInventory(id int, quantity int) models.Inventory {
 	db := getDatabaseConnection()
 	item := models.Inventory{}
 	defer db.Close()
@@ -74,12 +79,11 @@ func UpdateQuantityInInventory(id int, quantity int)  *gorm.DB {
 	if item.ID > 0 {
 		item.Quantity = quantity
 		result := db.Save(&item)
-		if(result.RowsAffected == 1) {
-			log.Debug("Quantity updated in the inventory") 
+		if result.RowsAffected == 1 {
+			log.Debug("Quantity updated in the inventory")
 		}
-		return result
 	}
-	return nil
+	return item
 }
 
 func getDatabaseConnection() *gorm.DB {
