@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
+	"github.com/sandeepmuppirala/inventory-management/models"
 	log "github.com/sirupsen/logrus"
-	"inventory-management/models"
 )
 
 func ViewItemsInInventory() []models.Inventory {
