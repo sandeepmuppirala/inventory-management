@@ -1,0 +1,9 @@
+type Item {
+    id : ID!
+    sku : String!
+    quantity : Int!
+}
+
+type Query {
+    item : Item!
+}
