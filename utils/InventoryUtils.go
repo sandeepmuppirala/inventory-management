@@ -2,7 +2,7 @@ package utils
 
 import (
 	"encoding/json"
-	"inventory-management/models"
+	"github.com/sandeepmuppirala/inventory-management/models"
 	"net/http"
 )
 
